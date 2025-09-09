@@ -5,75 +5,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Wallet, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, Plus, Minus } from 'lucide-react'
 import { authService, type User } from '@/lib/auth'
-
-
-
-const activeBets = [
-  {
-    id: 1,
-    sport: 'Football',
-    match: 'Manchester City vs Liverpool',
-    bet: 'Manchester City to Win',
-    odds: 2.10,
-    stake: 50,
-    potentialWin: 105,
-    status: 'active',
-    time: '15:30 Today'
-  },
-  {
-    id: 2,
-    sport: 'Basketball',
-    match: 'Lakers vs Warriors',
-    bet: 'Over 220.5 Points',
-    odds: 1.85,
-    stake: 25,
-    potentialWin: 46.25,
-    status: 'active',
-    time: '20:00 Today'
-  }
-]
-
-const betHistory = [
-  {
-    id: 1,
-    sport: 'Tennis',
-    match: 'Djokovic vs Nadal',
-    bet: 'Djokovic to Win',
-    odds: 1.75,
-    stake: 100,
-    result: 'won',
-    payout: 175,
-    date: '2024-01-15'
-  },
-  {
-    id: 2,
-    sport: 'Football',
-    match: 'Arsenal vs Chelsea',
-    bet: 'Draw',
-    odds: 3.20,
-    stake: 30,
-    result: 'lost',
-    payout: 0,
-    date: '2024-01-14'
-  },
-  {
-    id: 3,
-    sport: 'Basketball',
-    match: 'Celtics vs Heat',
-    bet: 'Celtics -5.5',
-    odds: 1.90,
-    stake: 75,
-    result: 'won',
-    payout: 142.50,
-    date: '2024-01-13'
-  }
-]
+import { useBetting } from '@/lib/betting'
+import ResponsibleGambling from '@/components/ResponsibleGambling'
 
 export default function Dashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const { getActiveBets, getBetHistory } = useBetting()
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser()
@@ -84,6 +24,21 @@ export default function Dashboard() {
     setUser(currentUser)
     setLoading(false)
   }, [])
+  
+  const activeBets = user ? getActiveBets(user.id) : []
+  const betHistory = user ? getBetHistory(user.id) : []
+  
+  const totalWinnings = betHistory
+    .filter(bet => bet.status === 'won')
+    .reduce((sum, bet) => sum + bet.potentialWin, 0)
+    
+  const totalLosses = betHistory
+    .filter(bet => bet.status === 'lost')
+    .reduce((sum, bet) => sum + bet.stake, 0)
+    
+  const winRate = betHistory.length > 0 
+    ? Math.round((betHistory.filter(bet => bet.status === 'won').length / betHistory.length) * 100)
+    : 0
 
   if (loading) {
     return (
@@ -131,7 +86,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Winnings</p>
-                <p className="text-2xl font-bold text-white">{user.currency} 0.00</p>
+                <p className="text-2xl font-bold text-white">{user.currency} {totalWinnings.toFixed(2)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
             </div>
@@ -141,7 +96,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Losses</p>
-                <p className="text-2xl font-bold text-white">{user.currency} 0.00</p>
+                <p className="text-2xl font-bold text-white">{user.currency} {totalLosses.toFixed(2)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500" />
             </div>
@@ -151,14 +106,17 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Win Rate</p>
-                <p className="text-2xl font-bold text-white">0%</p>
+                <p className="text-2xl font-bold text-white">{winRate}%</p>
               </div>
               <div className="w-8 h-8 bg-accent-500 rounded-full flex items-center justify-center">
-                <span className="text-dark-900 font-bold text-sm">0</span>
+                <span className="text-dark-900 font-bold text-sm">{winRate}</span>
               </div>
             </div>
           </div>
         </motion.div>
+
+        {/* Responsible Gambling */}
+        <ResponsibleGambling />
 
         {/* Quick Actions */}
         <motion.div
@@ -238,19 +196,19 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Clock size={16} className="text-gray-400" />
-                          <span className="text-gray-400 text-sm">{bet.time}</span>
+                          <span className="text-gray-400 text-sm">{new Date(bet.placedAt).toLocaleString()}</span>
                         </div>
                       </div>
                       
                       <div className="space-y-2 mb-4">
-                        <p className="text-gray-300">Bet: <span className="text-white">{bet.bet}</span></p>
+                        <p className="text-gray-300">Bet: <span className="text-white">{bet.selection}</span></p>
                         <p className="text-gray-300">Odds: <span className="text-primary-500 font-semibold">{bet.odds}</span></p>
                         <p className="text-gray-300">Stake: <span className="text-white">${bet.stake}</span></p>
                       </div>
                       
                       <div className="flex justify-between items-center pt-4 border-t border-gray-700">
                         <span className="text-gray-400">Potential Win:</span>
-                        <span className="text-green-500 font-bold">${bet.potentialWin}</span>
+                        <span className="text-green-500 font-bold">${bet.potentialWin.toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -274,9 +232,9 @@ export default function Dashboard() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            bet.result === 'won' ? 'bg-green-500/20' : 'bg-red-500/20'
+                            bet.status === 'won' ? 'bg-green-500/20' : 'bg-red-500/20'
                           }`}>
-                            {bet.result === 'won' ? (
+                            {bet.status === 'won' ? (
                               <CheckCircle size={16} className="text-green-500" />
                             ) : (
                               <XCircle size={16} className="text-red-500" />
@@ -284,27 +242,27 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="text-white font-semibold">{bet.match}</p>
-                            <p className="text-gray-400 text-sm">{bet.sport} • {bet.date}</p>
+                            <p className="text-gray-400 text-sm">{bet.sport} • {new Date(bet.placedAt).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </div>
                       
                       <div className="text-right">
-                        <p className="text-gray-300">Bet: {bet.bet}</p>
+                        <p className="text-gray-300">Bet: {bet.selection}</p>
                         <p className="text-gray-400 text-sm">Stake: ${bet.stake} @ {bet.odds}</p>
                       </div>
                       
                       <div className="text-right ml-6">
                         <p className={`font-bold ${
-                          bet.result === 'won' ? 'text-green-500' : 'text-red-500'
+                          bet.status === 'won' ? 'text-green-500' : 'text-red-500'
                         }`}>
-                          {bet.result === 'won' ? '+' : '-'}${bet.result === 'won' ? bet.payout : bet.stake}
+                          {bet.status === 'won' ? '+' : '-'}${bet.status === 'won' ? bet.potentialWin.toFixed(2) : bet.stake.toFixed(2)}
                         </p>
-                        <p className="text-gray-400 text-sm capitalize">{bet.result}</p>
+                        <p className="text-gray-400 text-sm capitalize">{bet.status}</p>
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
               </div>
             </div>
           )}

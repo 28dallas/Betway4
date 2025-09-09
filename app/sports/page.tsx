@@ -2,83 +2,28 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { Search, Filter, Clock, Users } from 'lucide-react'
-
-const sportsData = [
-  {
-    category: 'Football',
-    matches: [
-      {
-        id: 1,
-        league: 'Premier League',
-        homeTeam: 'Manchester United',
-        awayTeam: 'Arsenal',
-        time: '16:30',
-        date: 'Today',
-        homeOdds: '2.45',
-        drawOdds: '3.20',
-        awayOdds: '2.90',
-        viewers: '67.2K'
-      },
-      {
-        id: 2,
-        league: 'La Liga',
-        homeTeam: 'Real Madrid',
-        awayTeam: 'Barcelona',
-        time: '21:00',
-        date: 'Today',
-        homeOdds: '2.10',
-        drawOdds: '3.40',
-        awayOdds: '3.50',
-        viewers: '89.1K'
-      }
-    ]
-  },
-  {
-    category: 'Basketball',
-    matches: [
-      {
-        id: 3,
-        league: 'NBA',
-        homeTeam: 'Boston Celtics',
-        awayTeam: 'Miami Heat',
-        time: '20:00',
-        date: 'Today',
-        homeOdds: '1.85',
-        drawOdds: null,
-        awayOdds: '1.95',
-        viewers: '45.3K'
-      }
-    ]
-  },
-  {
-    category: 'Tennis',
-    matches: [
-      {
-        id: 4,
-        league: 'ATP Masters',
-        homeTeam: 'Novak Djokovic',
-        awayTeam: 'Rafael Nadal',
-        time: '14:00',
-        date: 'Tomorrow',
-        homeOdds: '1.75',
-        drawOdds: null,
-        awayOdds: '2.05',
-        viewers: '32.7K'
-      }
-    ]
-  }
-]
+import { Search, Filter, Clock, Users, ShoppingCart } from 'lucide-react'
+import { getSportMatches } from '@/lib/sportsData'
+import { useBetSlip } from '@/lib/betSlip'
 
 export default function SportsPage() {
   const [selectedSport, setSelectedSport] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
+  const { addBet, toggleBetSlip, bets } = useBetSlip()
 
   const sportCategories = ['All', 'Football', 'Basketball', 'Tennis', 'Baseball', 'Hockey']
+  const matches = getSportMatches(selectedSport)
 
-  const filteredData = selectedSport === 'All' 
-    ? sportsData 
-    : sportsData.filter(sport => sport.category === selectedSport)
+  const handleAddBet = (match: any, selection: string, odds: number) => {
+    addBet({
+      id: `${match.id}-${selection}`,
+      match: `${match.homeTeam} vs ${match.awayTeam}`,
+      selection,
+      odds,
+      sport: match.sport,
+      eventId: match.id
+    })
+  }
 
   return (
     <div className="min-h-screen bg-dark-950 py-8">
@@ -130,87 +75,90 @@ export default function SportsPage() {
           </div>
         </motion.div>
 
-        {/* Sports Sections */}
-        <div className="space-y-8">
-          {filteredData.map((sportCategory, categoryIndex) => (
+        {/* Bet Slip Toggle */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            onClick={toggleBetSlip}
+            className="bg-primary-600 hover:bg-primary-700 text-white p-3 rounded-full shadow-lg flex items-center space-x-2"
+          >
+            <ShoppingCart size={20} />
+            {bets.length > 0 && (
+              <span className="bg-accent-500 text-dark-900 text-xs font-bold px-2 py-1 rounded-full">
+                {bets.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Matches */}
+        <div className="space-y-6">
+          {matches.map((match, index) => (
             <motion.div
-              key={sportCategory.category}
+              key={match.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: categoryIndex * 0.1 }}
+              transition={{ delay: index * 0.1 }}
+              className="card hover:border-primary-500/50 transition-all duration-300"
             >
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                {sportCategory.category}
-                <span className="ml-3 text-sm bg-primary-600 text-white px-2 py-1 rounded-full">
-                  {sportCategory.matches.length} matches
-                </span>
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <span className="text-primary-500 text-sm font-medium">{match.league}</span>
+                  <p className="text-gray-400 text-xs">{match.startTime}</p>
+                </div>
+                {match.status === 'live' && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-red-500 text-sm font-medium">LIVE</span>
+                  </div>
+                )}
+              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {sportCategory.matches.map((match, matchIndex) => (
-                  <motion.div
-                    key={match.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: matchIndex * 0.05 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="card hover:border-primary-500/50 transition-all duration-300"
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-medium text-lg">{match.homeTeam}</span>
+                  {match.homeScore !== undefined ? (
+                    <div className="text-2xl font-bold text-white">
+                      {match.homeScore} - {match.awayScore}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">vs</span>
+                  )}
+                  <span className="text-white font-medium text-lg">{match.awayTeam}</span>
+                </div>
+              </div>
+
+              <div className={`grid ${match.odds.draw ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
+                <button 
+                  onClick={() => handleAddBet(match, match.homeTeam, match.odds.home)}
+                  className="odds-button text-center hover:bg-primary-600/20"
+                >
+                  <div className="text-xs text-gray-400 mb-1">Home</div>
+                  <div className="font-semibold text-lg">{match.odds.home}</div>
+                </button>
+                
+                {match.odds.draw && (
+                  <button 
+                    onClick={() => handleAddBet(match, 'Draw', match.odds.draw!)}
+                    className="odds-button text-center hover:bg-primary-600/20"
                   >
-                    {/* Match Header */}
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <span className="text-primary-500 text-sm font-medium">{match.league}</span>
-                        <p className="text-gray-400 text-xs">{match.date}</p>
-                      </div>
-                      <div className="flex items-center space-x-4 text-xs text-gray-400">
-                        <div className="flex items-center space-x-1">
-                          <Clock size={12} />
-                          <span>{match.time}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Users size={12} />
-                          <span>{match.viewers}</span>
-                        </div>
-                      </div>
-                    </div>
+                    <div className="text-xs text-gray-400 mb-1">Draw</div>
+                    <div className="font-semibold text-lg">{match.odds.draw}</div>
+                  </button>
+                )}
+                
+                <button 
+                  onClick={() => handleAddBet(match, match.awayTeam, match.odds.away)}
+                  className="odds-button text-center hover:bg-primary-600/20"
+                >
+                  <div className="text-xs text-gray-400 mb-1">Away</div>
+                  <div className="font-semibold text-lg">{match.odds.away}</div>
+                </button>
+              </div>
 
-                    {/* Teams */}
-                    <div className="text-center mb-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium text-lg">{match.homeTeam}</span>
-                        <span className="text-gray-400 text-sm">vs</span>
-                        <span className="text-white font-medium text-lg">{match.awayTeam}</span>
-                      </div>
-                    </div>
-
-                    {/* Odds */}
-                    <div className={`grid ${match.drawOdds ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
-                      <button className="odds-button text-center">
-                        <div className="text-xs text-gray-400 mb-1">Home</div>
-                        <div className="font-semibold text-lg">{match.homeOdds}</div>
-                      </button>
-                      
-                      {match.drawOdds && (
-                        <button className="odds-button text-center">
-                          <div className="text-xs text-gray-400 mb-1">Draw</div>
-                          <div className="font-semibold text-lg">{match.drawOdds}</div>
-                        </button>
-                      )}
-                      
-                      <button className="odds-button text-center">
-                        <div className="text-xs text-gray-400 mb-1">Away</div>
-                        <div className="font-semibold text-lg">{match.awayOdds}</div>
-                      </button>
-                    </div>
-
-                    {/* More Markets */}
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <button className="w-full text-primary-500 hover:text-primary-400 text-sm font-medium transition-colors">
-                        +25 More Markets
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <button className="w-full text-primary-500 hover:text-primary-400 text-sm font-medium transition-colors">
+                  +{match.markets.length - 1} More Markets
+                </button>
               </div>
             </motion.div>
           ))}

@@ -2,170 +2,175 @@
 
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, Clock, Users, DollarSign } from 'lucide-react'
-
-interface WithdrawalRequest {
-  id: string
-  userId: string
-  amount: number
-  provider: string
-  phoneNumber: string
-  status: string
-  createdAt: string
-  user: {
-    fullName: string
-    email: string
-  }
-}
+import { Users, DollarSign, TrendingUp, Activity, Settings, Eye } from 'lucide-react'
+import { useBetting } from '@/lib/betting'
 
 export default function AdminPage() {
-  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([])
-  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
+  const { userBets, settleBet } = useBetting()
+  
+  const users = JSON.parse(localStorage.getItem('users') || '[]')
+  const totalUsers = users.length
+  const totalBets = userBets.length
+  const totalStakes = userBets.reduce((sum, bet) => sum + bet.stake, 0)
+  const pendingBets = userBets.filter(bet => bet.status === 'pending')
 
-  useEffect(() => {
-    fetchWithdrawals()
-  }, [])
-
-  const fetchWithdrawals = async () => {
-    try {
-      const response = await fetch('/api/admin/withdrawals')
-      const data = await response.json()
-      setWithdrawals(data.withdrawals || [])
-    } catch (error) {
-      console.error('Failed to fetch withdrawals')
-    }
-    setLoading(false)
+  const handleSettleBet = (betId: string, result: 'won' | 'lost') => {
+    settleBet(betId, result)
   }
-
-  const handleApproval = async (withdrawalId: string, action: 'approve' | 'reject') => {
-    try {
-      const response = await fetch('/api/admin/withdrawals', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ withdrawalId, action })
-      })
-
-      if (response.ok) {
-        fetchWithdrawals() // Refresh list
-        alert(`Withdrawal ${action}d successfully`)
-      }
-    } catch (error) {
-      alert('Action failed')
-    }
-  }
-
-  const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending_approval')
-  const totalPending = pendingWithdrawals.reduce((sum, w) => sum + w.amount, 0)
 
   return (
     <div className="min-h-screen bg-dark-950 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-          <p className="text-gray-400">Manage withdrawal requests</p>
+          <p className="text-gray-400">Manage users, bets, and platform settings</p>
         </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center space-x-4">
-              <Clock className="text-yellow-500" size={32} />
-              <div>
-                <div className="text-2xl font-bold text-white">{pendingWithdrawals.length}</div>
-                <div className="text-gray-400">Pending Requests</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center space-x-4">
-              <DollarSign className="text-green-500" size={32} />
-              <div>
-                <div className="text-2xl font-bold text-white">${totalPending.toLocaleString()}</div>
-                <div className="text-gray-400">Total Pending</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center space-x-4">
-              <Users className="text-blue-500" size={32} />
-              <div>
-                <div className="text-2xl font-bold text-white">{withdrawals.length}</div>
-                <div className="text-gray-400">Total Requests</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Withdrawal Requests */}
+        {/* Stats Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card"
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          <h2 className="text-xl font-bold text-white mb-6">Withdrawal Requests</h2>
-          
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-400">Loading requests...</div>
+          <div className="card bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total Users</p>
+                <p className="text-2xl font-bold text-white">{totalUsers}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-500" />
             </div>
-          ) : withdrawals.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-400">No withdrawal requests</div>
+          </div>
+
+          <div className="card bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total Bets</p>
+                <p className="text-2xl font-bold text-white">{totalBets}</p>
+              </div>
+              <Activity className="w-8 h-8 text-green-500" />
             </div>
-          ) : (
+          </div>
+
+          <div className="card bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border-yellow-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total Stakes</p>
+                <p className="text-2xl font-bold text-white">${totalStakes.toFixed(2)}</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-yellow-500" />
+            </div>
+          </div>
+
+          <div className="card bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Pending Bets</p>
+                <p className="text-2xl font-bold text-white">{pendingBets.length}</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className="flex space-x-1 bg-dark-800 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Pending Bets
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'users'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Users
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Content */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === 'overview' && (
             <div className="space-y-4">
-              {withdrawals.map((withdrawal) => (
-                <div key={withdrawal.id} className="p-4 bg-gray-800 rounded-lg">
+              <h2 className="text-2xl font-bold text-white">Pending Bets ({pendingBets.length})</h2>
+              {pendingBets.map((bet) => (
+                <div key={bet.id} className="card">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-2">
+                      <div className="flex items-center space-x-4">
                         <div>
-                          <div className="font-semibold text-white">{withdrawal.user.fullName}</div>
-                          <div className="text-sm text-gray-400">{withdrawal.user.email}</div>
+                          <p className="text-white font-semibold">{bet.match}</p>
+                          <p className="text-gray-400 text-sm">{bet.sport} • {bet.selection}</p>
+                          <p className="text-gray-400 text-sm">Stake: ${bet.stake} @ {bet.odds}</p>
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-white">${withdrawal.amount.toLocaleString()}</div>
-                          <div className="text-sm text-gray-400">{withdrawal.provider.toUpperCase()}</div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        Account: {withdrawal.phoneNumber} • {new Date(withdrawal.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2 ml-4">
-                      {withdrawal.status === 'pending_approval' ? (
-                        <>
-                          <button
-                            onClick={() => handleApproval(withdrawal.id, 'approve')}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center space-x-2"
-                          >
-                            <CheckCircle size={16} />
-                            <span>Approve</span>
-                          </button>
-                          <button
-                            onClick={() => handleApproval(withdrawal.id, 'reject')}
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center space-x-2"
-                          >
-                            <XCircle size={16} />
-                            <span>Reject</span>
-                          </button>
-                        </>
-                      ) : (
-                        <div className={`px-4 py-2 rounded-lg ${
-                          withdrawal.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                          withdrawal.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                          'bg-yellow-500/20 text-yellow-400'
-                        }`}>
-                          {withdrawal.status.replace('_', ' ').toUpperCase()}
-                        </div>
-                      )}
+                    <div className="text-right">
+                      <p className="text-gray-300">Potential Win: ${bet.potentialWin.toFixed(2)}</p>
+                      <p className="text-gray-400 text-sm">{new Date(bet.placedAt).toLocaleString()}</p>
+                    </div>
+                    
+                    <div className="ml-6 space-x-2">
+                      <button
+                        onClick={() => handleSettleBet(bet.id, 'won')}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Win
+                      </button>
+                      <button
+                        onClick={() => handleSettleBet(bet.id, 'lost')}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Lose
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-white">Users ({totalUsers})</h2>
+              {users.map((user: any) => (
+                <div key={user.id} className="card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-semibold">{user.fullName}</p>
+                      <p className="text-gray-400 text-sm">{user.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white">Balance: {user.currency} {user.balance.toFixed(2)}</p>
+                      <p className="text-gray-400 text-sm">Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                 </div>
