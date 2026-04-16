@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Play, TrendingUp, Shield, Zap } from 'lucide-react'
 
@@ -41,14 +42,14 @@ export default function Hero() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary flex items-center justify-center space-x-2">
+              <Link href="/sports" className="btn-primary flex items-center justify-center space-x-2">
                 <Play className="w-5 h-5" />
                 <span>Start Betting</span>
-              </button>
-              <button className="btn-secondary flex items-center justify-center space-x-2">
+              </Link>
+              <Link href="/live" className="btn-secondary flex items-center justify-center space-x-2">
                 <TrendingUp className="w-5 h-5" />
                 <span>View Live Odds</span>
-              </button>
+              </Link>
             </div>
 
             {/* Features */}

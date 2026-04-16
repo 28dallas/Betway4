@@ -1,7 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Clock, Users, TrendingUp } from 'lucide-react'
+import { Clock, Users } from 'lucide-react'
+import { useBetSlip } from '@/lib/betSlip'
+import { useOdds } from '@/lib/oddsContext'
 
 const featuredEvents = [
   {
@@ -10,9 +12,9 @@ const featuredEvents = [
     league: 'Premier League',
     homeTeam: 'Manchester City',
     awayTeam: 'Liverpool',
-    homeOdds: '2.10',
-    drawOdds: '3.40',
-    awayOdds: '3.20',
+    homeOdds: 2.10,
+    drawOdds: 3.40,
+    awayOdds: 3.20,
     time: '15:30',
     date: 'Today',
     viewers: '45.2K'
@@ -23,9 +25,9 @@ const featuredEvents = [
     league: 'NBA',
     homeTeam: 'Lakers',
     awayTeam: 'Warriors',
-    homeOdds: '1.85',
+    homeOdds: 1.85,
     drawOdds: null,
-    awayOdds: '1.95',
+    awayOdds: 1.95,
     time: '20:00',
     date: 'Today',
     viewers: '32.1K'
@@ -35,10 +37,10 @@ const featuredEvents = [
     sport: 'Tennis',
     league: 'ATP Masters',
     homeTeam: 'Djokovic',
-    awayTeam: 'Nadal',
-    homeOdds: '1.75',
+    awayTeam: 'Medvedev',
+    homeOdds: 1.75,
     drawOdds: null,
-    awayOdds: '2.05',
+    awayOdds: 2.05,
     time: '14:00',
     date: 'Tomorrow',
     viewers: '28.5K'
@@ -46,6 +48,20 @@ const featuredEvents = [
 ]
 
 export default function FeaturedEvents() {
+  const { addBet } = useBetSlip()
+  const { convert } = useOdds()
+
+  const handleAddBet = (event: typeof featuredEvents[0], selection: string, odds: number) => {
+    addBet({
+      id: `fe-${event.id}-${selection}`,
+      match: `${event.homeTeam} vs ${event.awayTeam}`,
+      selection,
+      odds,
+      sport: event.sport,
+      eventId: String(event.id)
+    })
+  }
+
   return (
     <section>
       <motion.div
@@ -73,7 +89,6 @@ export default function FeaturedEvents() {
             whileHover={{ scale: 1.02 }}
             className="card hover:border-primary-500/50 transition-all duration-300"
           >
-            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <div>
                 <span className="text-primary-500 text-sm font-medium">{event.sport}</span>
@@ -91,7 +106,6 @@ export default function FeaturedEvents() {
               </div>
             </div>
 
-            {/* Teams */}
             <div className="space-y-3 mb-6">
               <div className="flex justify-between items-center">
                 <span className="text-white font-medium">{event.homeTeam}</span>
@@ -100,27 +114,34 @@ export default function FeaturedEvents() {
               </div>
             </div>
 
-            {/* Odds */}
-            <div className="grid grid-cols-3 gap-2">
-              <button className="odds-button text-center">
+            <div className={`grid ${event.drawOdds ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+              <button
+                onClick={() => handleAddBet(event, event.homeTeam, event.homeOdds)}
+                className="odds-button text-center"
+              >
                 <div className="text-xs text-gray-400 mb-1">1</div>
-                <div className="font-semibold">{event.homeOdds}</div>
+                <div className="font-semibold">{convert(event.homeOdds)}</div>
               </button>
-              
+
               {event.drawOdds && (
-                <button className="odds-button text-center">
+                <button
+                  onClick={() => handleAddBet(event, 'Draw', event.drawOdds!)}
+                  className="odds-button text-center"
+                >
                   <div className="text-xs text-gray-400 mb-1">X</div>
-                  <div className="font-semibold">{event.drawOdds}</div>
+                  <div className="font-semibold">{convert(event.drawOdds)}</div>
                 </button>
               )}
-              
-              <button className="odds-button text-center">
+
+              <button
+                onClick={() => handleAddBet(event, event.awayTeam, event.awayOdds)}
+                className="odds-button text-center"
+              >
                 <div className="text-xs text-gray-400 mb-1">2</div>
-                <div className="font-semibold">{event.awayOdds}</div>
+                <div className="font-semibold">{convert(event.awayOdds)}</div>
               </button>
             </div>
 
-            {/* Live indicator */}
             {event.date === 'Today' && (
               <div className="flex items-center justify-center mt-4 pt-4 border-t border-gray-700">
                 <div className="flex items-center space-x-2 text-primary-500">

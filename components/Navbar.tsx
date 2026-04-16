@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Menu, X, User, Wallet, LogOut, ChevronDown, CreditCard, History, Settings } from 'lucide-react'
 import { authService, type User as UserType } from '@/lib/auth'
+import { useOdds, type OddsFormat } from '@/lib/oddsContext'
 
 export default function Navbar() {
   const router = useRouter()
@@ -34,6 +35,13 @@ export default function Navbar() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu])
+
+  const { format, setFormat } = useOdds()
+  const oddsFormats: { label: string; value: OddsFormat }[] = [
+    { label: 'Dec', value: 'decimal' },
+    { label: 'Frac', value: 'fractional' },
+    { label: 'US', value: 'american' },
+  ]
 
   const navItems = [
     { name: 'Home', href: '/' },
@@ -65,6 +73,21 @@ export default function Navbar() {
               >
                 {item.name}
               </Link>
+            ))}
+          </div>
+
+          {/* Odds Format Switcher */}
+          <div className="hidden md:flex items-center bg-dark-800 rounded-lg p-0.5 border border-gray-700">
+            {oddsFormats.map(({ label, value }) => (
+              <button
+                key={value}
+                onClick={() => setFormat(value)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  format === value ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {label}
+              </button>
             ))}
           </div>
 

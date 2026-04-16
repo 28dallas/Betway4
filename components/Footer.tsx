@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Facebook, Twitter, Instagram, Mail, Phone } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -43,17 +43,13 @@ export default function Footer() {
                 <Mail size={16} />
                 <span>support@sportsbet.pro</span>
               </li>
-              <li className="flex items-center space-x-2 text-gray-400">
-                <Phone size={16} />
-                <span>+1 (555) 123-4567</span>
-              </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 SportsBet Pro. All rights reserved. | 18+ Only | Gamble Responsibly
+            © 2025 SportsBet Pro. All rights reserved. | 18+ Only | Gamble Responsibly
           </p>
         </div>
       </div>

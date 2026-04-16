@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    if (amount < 28000) {
-      return NextResponse.json({ error: 'Minimum withdrawal is $28,000' }, { status: 400 })
+    if (amount < 100) {
+      return NextResponse.json({ error: 'Minimum withdrawal is KES 100' }, { status: 400 })
     }
 
     // Check user balance

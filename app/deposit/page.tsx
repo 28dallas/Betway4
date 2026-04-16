@@ -15,30 +15,13 @@ export default function DepositPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    let currentUser = authService.getCurrentUser()
-    
-    // Create test user if none exists
+    const currentUser = authService.getCurrentUser()
     if (!currentUser) {
-      try {
-        currentUser = authService.signup({
-          email: 'test@example.com',
-          fullName: 'Test User',
-          phone: '254712345678',
-          country: 'Kenya',
-          currency: 'KES'
-        })
-      } catch (error) {
-        // User might already exist, try to login
-        try {
-          currentUser = authService.login('test@example.com', 'password')
-        } catch (loginError) {
-          console.error('Auth error:', loginError)
-        }
-      }
+      router.push('/login')
+      return
     }
-    
     setUser(currentUser)
-  }, [])
+  }, [router])
 
   const handleMobileMoneyDeposit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,13 +47,10 @@ export default function DepositPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert(`Test deposit successful! KES ${amount} added to your account.`)
-        
-        // Update user balance in localStorage
-        const updatedUser = { ...user, balance: user.balance + parseFloat(amount) }
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser))
-        setUser(updatedUser)
-        
+        alert(`Deposit successful! KES ${amount} added to your account.`)
+        // Refresh balance from DB
+        const refreshed = await authService.refreshUser()
+        if (refreshed) setUser(refreshed)
         setAmount('')
         setPhoneNumber('')
       } else {
@@ -240,12 +220,12 @@ export default function DepositPage() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="Enter amount"
-                    min="28"
+                    min="10"
                     step="1"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                     required
                   />
-                  <p className="text-sm text-gray-400 mt-1">Minimum: $28</p>
+                  <p className="text-sm text-gray-400 mt-1">Minimum: KES 10</p>
                 </div>
 
                 <button

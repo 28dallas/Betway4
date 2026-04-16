@@ -32,8 +32,8 @@ const liveMatches = [
   {
     id: 3,
     sport: 'Tennis',
-    homeTeam: 'Federer',
-    awayTeam: 'Murray',
+    homeTeam: 'Sinner',
+    awayTeam: 'Alcaraz',
     homeScore: 2,
     awayScore: 1,
     time: 'Set 4',

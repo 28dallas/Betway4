@@ -31,8 +31,8 @@ export default function WithdrawalPage() {
     }
 
     const withdrawAmount = parseFloat(amount)
-    if (withdrawAmount < 28000) {
-      alert('Minimum withdrawal amount is $28,000')
+    if (withdrawAmount < 100) {
+      alert('Minimum withdrawal amount is KES 100')
       return
     }
 
@@ -192,12 +192,12 @@ export default function WithdrawalPage() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="Enter amount"
-                    min="28000"
+                    min="100"
                     step="1"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                     required
                   />
-                  <p className="text-sm text-gray-400 mt-1">Minimum: $28,000</p>
+                  <p className="text-sm text-gray-400 mt-1">Minimum: KES 100</p>
                 </div>
 
                 <button
@@ -206,7 +206,7 @@ export default function WithdrawalPage() {
                   className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   <ArrowUpRight size={20} />
-                  <span>{loading ? 'Processing...' : `Request Withdrawal of $${amount || '0'}`}</span>
+                  <span>{loading ? 'Processing...' : `Request Withdrawal of KES ${amount || '0'}`}</span>
                 </button>
               </form>
             </motion.div>
@@ -238,7 +238,7 @@ export default function WithdrawalPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <AlertTriangle className="text-yellow-500" size={16} />
-                    <span className="text-gray-400">$28,000 Minimum</span>
+                    <span className="text-gray-400">KES 100 Minimum</span>
                   </div>
                 </div>
               </div>

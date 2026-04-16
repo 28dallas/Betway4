@@ -38,10 +38,11 @@ export default function LoginPage() {
         }
         await authService.signup({
           email: formData.email,
+          password: formData.password,
           fullName: `${formData.firstName} ${formData.lastName}`,
           phone: formData.phone,
-          country: 'United Kingdom',
-          currency: 'EUR'
+          country: 'Kenya',
+          currency: 'KES'
         })
         router.push('/dashboard')
       }
@@ -233,22 +234,39 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Terms for signup */}
+          {/* Terms + Age verification for signup */}
           {!isLogin && (
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
-                I agree to the{' '}
-                <Link href="/terms" className="text-primary-500 hover:text-primary-400">
-                  Terms & Conditions
-                </Link>
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <input
+                  id="age"
+                  name="age"
+                  type="checkbox"
+                  required
+                  className="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="age" className="ml-2 block text-sm text-gray-400">
+                  I confirm I am <span className="text-white font-medium">18 years of age or older</span> and legally permitted to gamble in my jurisdiction
+                </label>
+              </div>
+              <div className="flex items-start">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  required
+                  className="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
+                  I agree to the{' '}
+                  <Link href="/terms" className="text-primary-500 hover:text-primary-400">
+                    Terms & Conditions
+                  </Link>{' '}and{' '}
+                  <Link href="/privacy" className="text-primary-500 hover:text-primary-400">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
             </div>
           )}
 

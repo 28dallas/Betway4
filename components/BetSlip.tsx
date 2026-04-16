@@ -7,10 +7,12 @@ import { useBetting } from '@/lib/betting'
 import { authService } from '@/lib/auth'
 import { validateBet } from '@/lib/validation'
 import { useEffect, useState } from 'react'
+import { useOdds } from '@/lib/oddsContext'
 
 export default function BetSlip() {
   const { bets, removeBet, updateStake, clearAll, getTotalStake, getTotalPayout, isOpen, toggleBetSlip } = useBetSlip()
   const { placeBet } = useBetting()
+  const { convert } = useOdds()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [user, setUser] = useState<ReturnType<typeof authService.getCurrentUser>>(null)
@@ -115,7 +117,7 @@ export default function BetSlip() {
               </div>
               
               <div className="flex items-center justify-between mb-2">
-                <span className="text-primary-500 font-semibold">{bet.odds}</span>
+                <span className="text-primary-500 font-semibold">{convert(bet.odds)}</span>
                 <span className="text-xs text-gray-400">{bet.sport}</span>
               </div>
 

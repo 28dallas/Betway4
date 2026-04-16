@@ -11,68 +11,93 @@ export interface User {
 
 const isBrowser = () => typeof window !== 'undefined'
 
-const readStorage = <T>(key: string, fallback: T): T => {
-  if (!isBrowser()) {
-    return fallback
-  }
-
-  const value = window.localStorage.getItem(key)
-  return value ? JSON.parse(value) : fallback
+const getToken = (): string | null => {
+  if (!isBrowser()) return null
+  return localStorage.getItem('authToken')
 }
 
-const writeStorage = (key: string, value: unknown) => {
-  if (!isBrowser()) {
-    return
-  }
+const saveSession = (user: User, token: string) => {
+  localStorage.setItem('authToken', token)
+  localStorage.setItem('currentUser', JSON.stringify(user))
+}
 
-  window.localStorage.setItem(key, JSON.stringify(value))
+const clearSession = () => {
+  localStorage.removeItem('authToken')
+  localStorage.removeItem('currentUser')
 }
 
 export const authService = {
-  signup: (userData: Omit<User, 'id' | 'balance' | 'createdAt'>) => {
-    const users = readStorage<User[]>('users', [])
-    
-    if (users.find((u: User) => u.email === userData.email)) {
-      throw new Error('Email already exists')
-    }
+  signup: async (userData: Omit<User, 'id' | 'balance' | 'createdAt'> & { password?: string }) => {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'signup',
+        email: userData.email,
+        password: userData.password || 'Password1',
+        fullName: userData.fullName,
+        phone: userData.phone,
+        country: userData.country,
+        currency: userData.currency,
+      }),
+    })
 
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      balance: 0,
-      createdAt: new Date().toISOString()
-    }
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Signup failed')
 
-    users.push(newUser)
-    writeStorage('users', users)
-    writeStorage('currentUser', newUser)
-    
-    return newUser
+    saveSession(data.user, data.token)
+    return data.user as User
   },
 
-  login: (email: string, password: string) => {
-    const users = readStorage<User[]>('users', [])
-    const user = users.find((u: User) => u.email === email)
-    
-    if (!user) {
-      throw new Error('User not found')
-    }
+  login: async (email: string, password: string) => {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', email, password }),
+    })
 
-    writeStorage('currentUser', user)
-    return user
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Login failed')
+
+    saveSession(data.user, data.token)
+    return data.user as User
   },
 
   logout: () => {
-    if (isBrowser()) {
-      window.localStorage.removeItem('currentUser')
-    }
+    clearSession()
   },
 
   getCurrentUser: (): User | null => {
-    return readStorage<User | null>('currentUser', null)
+    if (!isBrowser()) return null
+    const raw = localStorage.getItem('currentUser')
+    return raw ? JSON.parse(raw) : null
   },
 
-  isAuthenticated: () => {
-    return !!readStorage<User | null>('currentUser', null)
-  }
+  // Refresh balance from DB (call after deposit/bet)
+  refreshUser: async (): Promise<User | null> => {
+    const token = getToken()
+    if (!token) return null
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'me' }),
+      })
+
+      if (!res.ok) return null
+      const data = await res.json()
+      localStorage.setItem('currentUser', JSON.stringify(data.user))
+      return data.user as User
+    } catch {
+      return null
+    }
+  },
+
+  getToken,
+
+  isAuthenticated: () => !!getToken(),
 }
