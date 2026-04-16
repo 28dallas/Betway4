@@ -6,15 +6,18 @@ import { useBetSlip } from '@/lib/betSlip'
 import { useBetting } from '@/lib/betting'
 import { authService } from '@/lib/auth'
 import { validateBet } from '@/lib/validation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function BetSlip() {
   const { bets, removeBet, updateStake, clearAll, getTotalStake, getTotalPayout, isOpen, toggleBetSlip } = useBetSlip()
   const { placeBet } = useBetting()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  
-  const user = authService.getCurrentUser()
+  const [user, setUser] = useState<ReturnType<typeof authService.getCurrentUser>>(null)
+
+  useEffect(() => {
+    setUser(authService.getCurrentUser())
+  }, [])
   
   const handlePlaceBets = async () => {
     if (!user) {

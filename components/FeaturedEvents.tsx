@@ -49,7 +49,7 @@ export default function FeaturedEvents() {
   return (
     <section>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="text-center mb-12"
@@ -66,7 +66,7 @@ export default function FeaturedEvents() {
         {featuredEvents.map((event, index) => (
           <motion.div
             key={event.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}

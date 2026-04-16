@@ -9,9 +9,28 @@ export interface User {
   createdAt: string
 }
 
+const isBrowser = () => typeof window !== 'undefined'
+
+const readStorage = <T>(key: string, fallback: T): T => {
+  if (!isBrowser()) {
+    return fallback
+  }
+
+  const value = window.localStorage.getItem(key)
+  return value ? JSON.parse(value) : fallback
+}
+
+const writeStorage = (key: string, value: unknown) => {
+  if (!isBrowser()) {
+    return
+  }
+
+  window.localStorage.setItem(key, JSON.stringify(value))
+}
+
 export const authService = {
   signup: (userData: Omit<User, 'id' | 'balance' | 'createdAt'>) => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
+    const users = readStorage<User[]>('users', [])
     
     if (users.find((u: User) => u.email === userData.email)) {
       throw new Error('Email already exists')
@@ -25,34 +44,35 @@ export const authService = {
     }
 
     users.push(newUser)
-    localStorage.setItem('users', JSON.stringify(users))
-    localStorage.setItem('currentUser', JSON.stringify(newUser))
+    writeStorage('users', users)
+    writeStorage('currentUser', newUser)
     
     return newUser
   },
 
   login: (email: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
+    const users = readStorage<User[]>('users', [])
     const user = users.find((u: User) => u.email === email)
     
     if (!user) {
       throw new Error('User not found')
     }
 
-    localStorage.setItem('currentUser', JSON.stringify(user))
+    writeStorage('currentUser', user)
     return user
   },
 
   logout: () => {
-    localStorage.removeItem('currentUser')
+    if (isBrowser()) {
+      window.localStorage.removeItem('currentUser')
+    }
   },
 
   getCurrentUser: (): User | null => {
-    const user = localStorage.getItem('currentUser')
-    return user ? JSON.parse(user) : null
+    return readStorage<User | null>('currentUser', null)
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('currentUser')
+    return !!readStorage<User | null>('currentUser', null)
   }
 }

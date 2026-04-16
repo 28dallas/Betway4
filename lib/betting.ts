@@ -27,8 +27,17 @@ interface BettingStore {
   settleBet: (betId: string, result: 'won' | 'lost' | 'void') => void
 }
 
+const readStoredBets = (): PlacedBet[] => {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  const storedBets = window.localStorage.getItem('userBets')
+  return storedBets ? JSON.parse(storedBets) : []
+}
+
 export const useBetting = create<BettingStore>((set, get) => ({
-  userBets: JSON.parse(localStorage.getItem('userBets') || '[]'),
+  userBets: readStoredBets(),
 
   placeBet: async (betData) => {
     const user = authService.getCurrentUser()
@@ -48,16 +57,16 @@ export const useBetting = create<BettingStore>((set, get) => ({
 
     // Update user balance
     const updatedUser = { ...user, balance: user.balance - betData.stake }
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+    window.localStorage.setItem('currentUser', JSON.stringify(updatedUser))
     
     // Update users array
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
+    const users = JSON.parse(window.localStorage.getItem('users') || '[]')
     const updatedUsers = users.map((u: any) => u.id === user.id ? updatedUser : u)
-    localStorage.setItem('users', JSON.stringify(updatedUsers))
+    window.localStorage.setItem('users', JSON.stringify(updatedUsers))
 
     set((state) => {
       const newBets = [...state.userBets, bet]
-      localStorage.setItem('userBets', JSON.stringify(newBets))
+      window.localStorage.setItem('userBets', JSON.stringify(newBets))
       return { userBets: newBets }
     })
 
@@ -94,11 +103,11 @@ export const useBetting = create<BettingStore>((set, get) => ({
             const user = authService.getCurrentUser()
             if (user) {
               const updatedUser = { ...user, balance: user.balance + bet.potentialWin }
-              localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+              window.localStorage.setItem('currentUser', JSON.stringify(updatedUser))
               
-              const users = JSON.parse(localStorage.getItem('users') || '[]')
+              const users = JSON.parse(window.localStorage.getItem('users') || '[]')
               const updatedUsers = users.map((u: any) => u.id === user.id ? updatedUser : u)
-              localStorage.setItem('users', JSON.stringify(updatedUsers))
+              window.localStorage.setItem('users', JSON.stringify(updatedUsers))
             }
           }
 
@@ -107,7 +116,7 @@ export const useBetting = create<BettingStore>((set, get) => ({
         return bet
       })
       
-      localStorage.setItem('userBets', JSON.stringify(updatedBets))
+      window.localStorage.setItem('userBets', JSON.stringify(updatedBets))
       return { userBets: updatedBets }
     })
   }

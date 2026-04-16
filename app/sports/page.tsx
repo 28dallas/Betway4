@@ -30,7 +30,7 @@ export default function SportsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
@@ -40,7 +40,7 @@ export default function SportsPage() {
 
         {/* Filters */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="mb-8 space-y-4"
@@ -95,7 +95,7 @@ export default function SportsPage() {
           {matches.map((match, index) => (
             <motion.div
               key={match.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               className="card hover:border-primary-500/50 transition-all duration-300"

@@ -7,9 +7,14 @@ import { useBetting } from '@/lib/betting'
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [users, setUsers] = useState<any[]>([])
   const { userBets, settleBet } = useBetting()
-  
-  const users = JSON.parse(localStorage.getItem('users') || '[]')
+
+  useEffect(() => {
+    const storedUsers = window.localStorage.getItem('users')
+    setUsers(storedUsers ? JSON.parse(storedUsers) : [])
+  }, [])
+
   const totalUsers = users.length
   const totalBets = userBets.length
   const totalStakes = userBets.reduce((sum, bet) => sum + bet.stake, 0)

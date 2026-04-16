@@ -47,7 +47,7 @@ export default function PopularSports() {
   return (
     <section>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="text-center mb-12"
@@ -64,14 +64,14 @@ export default function PopularSports() {
         {sports.map((sport, index) => (
           <motion.div
             key={sport.name}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={false}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.05 }}
             className="group"
           >
-            <Link href={`/sports/${sport.name.toLowerCase()}`}>
+            <Link href={`/sports?sport=${encodeURIComponent(sport.name)}`}>
               <div className="card hover:border-primary-500/50 transition-all duration-300 text-center">
                 <div className={`w-16 h-16 bg-gradient-to-r ${sport.color} rounded-full flex items-center justify-center mx-auto mb-4 text-2xl`}>
                   {sport.icon}

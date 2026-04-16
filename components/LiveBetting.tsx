@@ -64,7 +64,7 @@ export default function LiveBetting() {
   return (
     <section>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="text-center mb-12"
@@ -84,7 +84,7 @@ export default function LiveBetting() {
         {odds.map((match, index) => (
           <motion.div
             key={match.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}

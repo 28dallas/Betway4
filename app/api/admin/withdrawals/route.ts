@@ -8,7 +8,7 @@ export async function GET() {
       include: {
         user: {
           select: {
-            fullName: true,
+            name: true,
             email: true
           }
         }
@@ -16,7 +16,15 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ withdrawals })
+    const normalizedWithdrawals = withdrawals.map((withdrawal) => ({
+      ...withdrawal,
+      user: {
+        ...withdrawal.user,
+        fullName: withdrawal.user.name
+      }
+    }))
+
+    return NextResponse.json({ withdrawals: normalizedWithdrawals })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch withdrawals' }, { status: 500 })
   }
